@@ -55,6 +55,11 @@ nav {
     display: none; /* Hide it by default */
 }
 
+a:link,
+a:visited {
+    color: inherit;
+}
+
 nav a {
     color: #66FF33;
     text-decoration: underline; /* Add underline to links */

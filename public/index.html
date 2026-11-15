@@ -1,95 +1,170 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/13.3.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/13.3.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/13.3.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FROGDAZE | A cute site to learn more about frogs">
+    <meta name="keywords" content="frog, frogs, frogdaze">
+    <title>FrogDaze</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="images/icon_ico.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="images/icon_ico.ico" type="image/x-icon">
+    <script src="script.js"></script>
     <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-5Z3Q4TTT"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
     </script>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+</head>
+
+<body>
+    <img src="images/banner.jpg" alt="banner image" style="padding-bottom: 10px;">
+    <div id="header-nav-container">
+        <div id="header">
+            <img src="images/image001.gif" alt="FROGDAZE" style="margin-top: 25px;">
+            <p style="text-align: center;">HOP IN AND LOOK AROUND</p>
+        </div>
+        <nav>
+            <div id="navbar-toggle">&#9776;</div>
+            <ul id="navbar-links">
+                <a href="frogaphiles.html">FROGAPHILES</a>
+                <a href="serious_frog_stuff.html">CARING FOR YOUR FROG</a>
+                <a href="specific_frog_care.html">SPECIFIC FROG CARE</a>
+                <a href="bullfrogs_and_leopard_frogs.html">BULLFROGS AND LEOPARD FROGS</a>
+                <a href="european_green_toad.html">EUROPEAN GREEN TOADS</a>
+                <a href="fire_bellies.html">FIRE BELLY TOADS</a>
+                <a href="pac_man_frog.html">PACMAN FROG</a>
+                <a href="pyxie_frog.html">PYXIE FROG</a>
+                <a href="tomato_frog.html">TOMATO FROG</a>
+                <a href="tree_frogs.html">TREE FROGS</a>
+                <a href="chet_atkins_sings.html">FROGS KISSING</a>
+                <a href="grandma_frog_tales.html">GRANDMA FROG TALES</a>
+                <a href="white.html">WHITE'S TREE FROG</a>
+                <a href="frog_pictures.html">FROG PICTURES</a>
+                <a href="frog_art_gallery2.html">FROG ART GALLERY</a>
+                <!--<a href="melodrama.html">MELODRAMA</a>-->
+                <!--<a href="links.html">LINKS</a>-->
+                <a href="bibliography_and_resources.html">REFERENCES</a>
+            </ul>
+        </nav>
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+    <div id="content">
+        <div id="holidaySlide" class="tile-container one-tile" style="display: none;">
+            <div class="tile" id="holidayTile">
+                <h1 id="holidayTitle" style="font-size: 2em; font-family: 'Comic Sans MS'; color: #FF0000;">TEMP</h1>
+                <img id="holidayImage" src="" alt="">
+            </div>
+        </div>
+        <div class="tile-container one-tile">
+            <div class="tile">
+                <div class="content-container">
+                    <img src="images/millie.jpg" alt="Picture of Millie">
+                    <div class="text-container">
+                        <p><b>Hello, I'm Millicent but you can call me Millie.</b></p>
+                        <p>I'll be your guide. I know you'll find something to croak about. And you can email me.
+                            <a href="mailto:tobey77B@icloud.com" style="color: #66FF33;">Just Click Here.</a> My staff and I will be happy to help you with your frog questions.
+                        </p>
+                        <p><b>Millie quotes:</b></p>
+                        <p>"A frog by any other name is still a frog and still as sweet."</p>
+                        <p>"A frog catches more flies than honey ever can."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!--
+        <div id="holidaySlide" class="tile-container one-tile">
+            <div class="tile" id="holidayTile">
+                <h1 id="holidayTitle" style="font-size: 2em; font-family: 'Comic Sans MS'; color: #FF0000;">A HOPPY HOLIDAY</h1>
+                <img id="holidayImage" src="images/pixelated_frog_santa_hat.jpg" alt="image of frog wearing santa hat">
+            </div>
+        </div>
+    -->
+        <div class="tile-container three-tiles">
+            <div class="tile">
+                <p><a href="help.html"><b>A visit by the frog doctor.</b></a></p>
+                <a href="help.html">
+                <img src="images/sick_frog.jpg" alt="sick frog" style="width: 80px; height: auto;">
+                <p><b>Help! My frog or toad is sick!</a></b></p>
+                
+            </div>
+            <div class="tile">
+                <p><b><a href="meet the webmaster.html">Meet the webmaster</a></b></p>
+                <a href="meet the webmaster.html">
+                <img src="images/frog at computer.gif" alt="Webmaster"></a>
+                <p>(And see photos of all of Webster's friends)</p>
+            </div>
+            <div class="tile">
+                <p><b>Millie Quotes</b></p>
+                <p><b>"Hello. I'm Millie. I'll be your guide."</b></p>
+                <p><b>"A frog by any other name is still as sweet and still a frog."<br>"Frogs catch more flies than honey ever can."</b></p>
+            </div>
+        </div>  
+        <div class="tile-container two-tiles">
+            <div class="tile">
+                <a href="dear_josephine.html">
+                    <img border="0" src="images/j0101316.gif" width="100" height="72" alt="Millie">
+                </a>
+                <p>
+                    <b>
+                        "I know you will find something to croak about. Click on my picture and I'll talk to
+                        <a href="dear_josephine.html">Dear Millie. Advice for frogs and humans.</a>
+                        you in red eye frog language."
+                    </b>
+                </p>
+            </div>
+        
+            <div class="tile">
+                <a href="a_letter_inquiring_about_josephi.html">
+                    <img border="0" src="images/anfrogprince.gif" width="98" height="175" alt="Frog Prince">
+                </a>
+                <p>
+                    <b>
+                        <a href="a_letter_inquiring_about_josephi.html">The Prince has a crush on Millie!</a>
+                        Read all about it here!
+                    </b>
+                </p>
+            </div>
+        </div>
+        <div class="tile-container two-tiles">
+            <div class="tile">
+                <a href="if_frogs_could_talk.html">
+                    <img border="0" src="images/book cover with frog2.jpg" width="300px" height="auto" alt="Book Cover">
+                       
+                </a>
+                <p>
+                    <b>
+                        <a href="if_frogs_could_talk.html">We've written a book! Click here and find out more.</a>
+                    </b>
+                </p>
+            </div>
+            <div class="tile">
+                <a href="frogpuzzle.html">
+                    <img border="0" src="images/napfor%20puzzle.jpg" width="300px" height="auto" alt="Frog Puzzle">
+                </a>
+                <p>
+                    <b>
+                        <a href="frogpuzzle.html">FROG PUZZLE!</a>
+                    </b>
+                </p>
+            </div>
+        </div>
+        <div class="tile-container">
+            <!-- Tile 1 -->
+            <div class="tile">
+                <img src="images/frogmail.gif" alt="Contact Me" width="585" height="33">
+                <p><a href="mailto:tobey77B@icloud.com" style="color: #66FF33;">Contact me</a></p>
+            </div>
+    
+            <!-- Tile 2 -->
+            <div class="tile">
+                <img src="images/dontlink.gif" alt="Image" width="106" height="70">
+                <p style="color: #66FF33;">Published: 11/28/2024</p>
+                <p style="color: #66FF33;">Writer: Carole</p>
+            </div>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
-    </script>
-  </body>
+        </div>
+    </div>
+</body>
 </html>

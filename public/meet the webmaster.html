@@ -75,7 +75,7 @@
 </font><font face="Arial" size="2" color="#FFFFFF">
 <a href="images/pyxie hissing_small.JPG">
 <font color="black">
-<img border="2" src="images/pyxie hissing_small.JPG" width="100" height="75"></font></a></font></b><p align="center">
+<img id="photoGalleryStart" border="2" src="images/pyxie hissing_small.JPG" width="100" height="75"></font></a></font></b><p align="center">
 <b><font color="black" size="1" face="Arial">(It's obvious this frog wanted to 
 be featured on Webster's page. He cried until he was.) </font></b>
 <table border="0" style="border-collapse: collapse" width="100%" id="table5">
@@ -327,6 +327,34 @@ be featured on Webster's page. He cried until he was.) </font></b>
 <p align="center"><font face="Arial" size="2"><b><font color="black">
 		<a href="index.html">
 <img border="0" src="images/homeicon.gif" width="50" height="50"></a></font></b></font><b><font face="Arial" size="2" color="#00000">Home</font></b></p>
+
+<script>
+	function makePhotosToggleOnClick() {
+		document.querySelectorAll('#photoGalleryStart, #table5 img').forEach(function(photo) {
+			photo.style.cursor = 'pointer';
+			photo.addEventListener('click', function(event) {
+				event.preventDefault();
+
+				if (photo.dataset.enlarged === 'true') {
+					photo.width = Number(photo.dataset.originalWidth);
+					photo.height = Number(photo.dataset.originalHeight);
+					delete photo.dataset.enlarged;
+					delete photo.dataset.originalWidth;
+					delete photo.dataset.originalHeight;
+					return;
+				}
+
+				photo.dataset.originalWidth = photo.width;
+				photo.dataset.originalHeight = photo.height;
+				photo.width *= 3;
+				photo.height *= 3;
+				photo.dataset.enlarged = 'true';
+			});
+		});
+	}
+
+	makePhotosToggleOnClick();
+</script>
 
 </body>
 

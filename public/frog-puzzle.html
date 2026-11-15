@@ -1,0 +1,469 @@
+<title>Tree Frog Jigsaw</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap">
+<style>
+/* Layout: a toolbar over a felt puzzle table that scales to fit its frame (made to sit in an iframe) */
+:root {
+  --table: #173a22;
+  --table-deep: #0f2a18;
+  --ink: #eef6e8;
+  --muted: #a9c4a6;
+  --board: #0b2013;
+  --line: #3f6b45;
+  --accent: #f07a1c;   /* the frog's orange toes */
+  --eye: #d8232a;      /* the frog's red eye */
+  --font: "Figtree", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--table); color: var(--ink); font-family: var(--font); font-size: 15px;
+  display: flex; flex-direction: column;
+  padding-left: max(12px, env(safe-area-inset-left, 0px));
+  padding-right: max(12px, env(safe-area-inset-right, 0px));
+  padding-block: 10px;
+  user-select: none; -webkit-user-select: none;
+}
+.bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; padding-bottom: 10px; }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tip { margin: 0; color: var(--muted); font-size: .82rem; flex: 1 1 220px; min-width: 0; }
+.stat { font-variant-numeric: tabular-nums; font-weight: 600; }
+.stat small { color: var(--muted); font-weight: 400; margin-right: 4px; text-transform: uppercase; letter-spacing: .06em; font-size: .72rem; }
+button, select {
+  font: 600 .9rem var(--font); color: var(--ink); background: var(--table-deep);
+  border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer;
+}
+select { padding-right: 10px; }
+button:hover, select:hover { border-color: var(--accent); }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #241000; }
+button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+.table { flex: 1; min-height: 0; position: relative; display: grid; place-items: center; overflow: hidden; }
+.scaler { position: relative; }
+.stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; touch-action: none; }
+.tray {
+  position: absolute; border-radius: 14px;
+  background: repeating-linear-gradient(45deg, transparent 0 10px, rgba(255,255,255,.025) 10px 20px);
+  border: 1.5px dashed rgba(169,196,166,.25);
+}
+.board {
+  position: absolute; background: var(--board); border-radius: 4px;
+  box-shadow: 0 0 0 2px var(--line), 0 12px 40px rgba(0,0,0,.45);
+}
+.board img { width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.board.ghost img { opacity: .22; }
+.board.done img { opacity: 1; }
+.piece {
+  position: absolute; left: 0; top: 0; will-change: transform;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.5));
+}
+.piece.animate { transition: transform .45s cubic-bezier(.3,.7,.3,1); }
+.piece.drag { filter: drop-shadow(0 10px 14px rgba(0,0,0,.55)); }
+.piece.locked { filter: none; }
+.stage.done .piece { opacity: 0; transition: opacity .6s .2s; }
+
+.win {
+  position: absolute; inset: auto 0 18px; margin: 0 auto; width: fit-content; max-width: calc(100% - 24px);
+  background: var(--table-deep); border: 2px solid var(--accent); border-radius: 16px;
+  padding: 12px 16px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,.5); z-index: 99999;
+}
+.win[hidden] { display: none; }
+.win p { margin: 0; font-weight: 700; }
+.win p small { display: block; font-weight: 400; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .piece.animate, .board img, .stage.done .piece { transition: none; } }
+</style>
+
+<div class="bar">
+  <div class="group">
+    <label for="count" class="stat"><small>Pieces</small></label>
+    <select id="count">
+      <option value="12">12</option>
+      <option value="24" selected>24</option>
+      <option value="48">48</option>
+      <option value="96">96</option>
+    </select>
+    <button id="newBtn" class="primary">New puzzle</button>
+    <button id="shuffleBtn" title="Spread out the pieces that are not on the board">Shuffle</button>
+    <button id="ghostBtn" aria-pressed="false" title="Show a faint picture on the board">Guide</button>
+  </div>
+  <p class="tip">Pieces that fit snap together and move as one. Double-click or double-tap a piece to pull it loose.</p>
+  <div class="group">
+    <span class="stat"><small>Placed</small><span id="placed">0 / 0</span></span>
+    <span class="stat"><small>Time</small><span id="time">0:00</span></span>
+  </div>
+</div>
+
+<div class="table" id="table">
+  <div class="scaler" id="scaler">
+    <div class="stage" id="stage"></div>
+  </div>
+  <div class="win" id="win" hidden>
+    <p>Puzzle complete!<small id="winText"></small></p>
+    <button class="primary" id="againBtn">Play again</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  // Pictures live in this folder, listed by file name in images.json inside it, e.g.
+  const IMAGE_FOLDER = "images/puzzle-images/";
+  const FALLBACK = ["millie.jpg", "webmeister1.jpg", "josephine-puzzle.png"];        // used if images.json can't be read
+  const AREA = 240000;                  // board area in puzzle units; width and height follow the picture
+  const GAP = 24;
+  let BW = 600, BH = 400, imageList = [], imgSrc = "", lastPick = "";
+
+  const $ = id => document.getElementById(id);
+  const stage = $("stage"), scaler = $("scaler"), table = $("table");
+  const hit = document.createElement("canvas").getContext("2d");
+  const img = new Image();
+
+  let pieces = [], cols, rows, cw, ch, margin, layout, board, trays, PW, PH, scale = 1;
+  let zTop = 1000, timer = null, started = 0, elapsed = 0, finished = false, ghost = false;
+
+  // ---------- shape ----------
+  // One tab, drawn along an edge from u=0 to u=1, bulging toward +v. Symmetric, so a neighbour
+  // drawing the same edge backwards with mirrored jitter gets the identical curve.
+  function tabPoints(s, j, k) {
+    const U = u => u + j, V = v => v * s * k;
+    return [
+      ["L", U(.40), 0],
+      ["C", U(.42), V(.04), U(.31), V(.10), U(.34), V(.18)],
+      ["C", U(.37), V(.27), U(.63), V(.27), U(.66), V(.18)],
+      ["C", U(.69), V(.10), U(.58), V(.04), U(.60), 0],
+      ["L", 1, 0]
+    ];
+  }
+  function addEdge(path, ax, ay, bx, by, edge, sign) {
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+    const nx = dy / L, ny = -dx / L; // outward normal (clockwise traversal)
+    const P = (u, v) => [ax + dx * u + nx * v * L, ay + dy * u + ny * v * L];
+    if (!edge) { path.lineTo(bx, by); return; }
+    const pts = tabPoints(edge.t * sign, sign > 0 ? edge.j : -edge.j, edge.k);
+    for (const p of pts) {
+      if (p[0] === "L") path.lineTo(...P(p[1], p[2]));
+      else path.bezierCurveTo(...P(p[1], p[2]), ...P(p[3], p[4]), ...P(p[5], p[6]));
+    }
+  }
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const randEdge = () => ({ t: Math.random() < .5 ? 1 : -1, j: rnd(-.05, .05), k: rnd(.85, 1.1) });
+
+  // ---------- layout ----------
+  function chooseLayout() {
+    const w = table.clientWidth || 800, h = table.clientHeight || 600;
+    const side = { PW: BW * 2.1 + GAP * 2, PH: BH + GAP * 2 };
+    const below = { PW: BW + GAP * 2, PH: BH * 2.15 + GAP * 3 };
+    const sSide = Math.min(w / side.PW, h / side.PH), sBelow = Math.min(w / below.PW, h / below.PH);
+    return sSide >= sBelow ? "side" : "below";
+  }
+  function applyLayout(mode) {
+    const old = board;
+    layout = mode;
+    if (mode === "side") {
+      const tw = BW * .55;
+      PW = BW + tw * 2 + GAP * 2; PH = BH + GAP * 2;
+      board = { x: tw + GAP, y: GAP };
+      trays = [{ x: 0, y: GAP, w: tw, h: BH }, { x: tw + GAP * 2 + BW, y: GAP, w: tw, h: BH }];
+    } else {
+      PW = BW + GAP * 2; PH = BH * 2.15 + GAP * 3;
+      board = { x: GAP, y: GAP };
+      trays = [{ x: GAP, y: BH + GAP * 2, w: BW, h: PH - BH - GAP * 3 }];
+    }
+    stage.querySelectorAll(".tray, .board").forEach(e => e.remove());
+    trays.forEach(t => {
+      const d = document.createElement("div"); d.className = "tray";
+      Object.assign(d.style, { left: t.x + "px", top: t.y + "px", width: t.w + "px", height: t.h + "px" });
+      stage.prepend(d);
+    });
+    const b = document.createElement("div"); b.className = "board" + (ghost ? " ghost" : "") + (finished ? " done" : "");
+    b.id = "board";
+    Object.assign(b.style, { left: board.x + "px", top: board.y + "px", width: BW + "px", height: BH + "px" });
+    const pic = document.createElement("img"); pic.src = imgSrc; pic.alt = "The puzzle picture";
+    b.appendChild(pic);
+    stage.appendChild(b);
+    stage.style.width = PW + "px"; stage.style.height = PH + "px";
+    // keep board pieces where they were relative to the board
+    if (old) for (const g of groups()) if (g.ps.some(p => p.locked || onBoard(p, old)))
+      for (const p of g.ps) { p.x += board.x - old.x; p.y += board.y - old.y; }
+    fit();
+  }
+  const groups = () => [...new Set(pieces.map(p => p.g))];
+  const groupOnBoard = g => g.ps.some(p => p.locked || onBoard(p));
+  function fit() {
+    const w = table.clientWidth, h = table.clientHeight;
+    scale = Math.max(.1, Math.min(w / PW, h / PH));
+    stage.style.transform = `scale(${scale})`;
+    scaler.style.width = PW * scale + "px"; scaler.style.height = PH * scale + "px";
+  }
+  const onBoard = (p, b = board) => {
+    const cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+    return cx > b.x && cx < b.x + BW && cy > b.y && cy < b.y + BH;
+  };
+
+  // ---------- build ----------
+  function build() {
+    // board takes the picture's shape; pick a grid whose cells are close to square
+    const ar = img.naturalWidth / img.naturalHeight, target = +$("count").value;
+    BW = Math.sqrt(AREA * ar); BH = AREA / BW;
+    cols = Math.max(2, Math.round(Math.sqrt(target * ar)));
+    rows = Math.max(2, Math.round(target / cols));
+    cw = BW / cols; ch = BH / rows; margin = Math.min(cw, ch) * .3;
+    finished = false; stopTimer(); elapsed = 0; started = 0; showTime();
+    $("win").hidden = true; stage.classList.remove("done");
+    stage.querySelectorAll(".piece").forEach(e => e.remove());
+    pieces = [];
+    applyLayout(chooseLayout());
+
+    // horizontal edges: below row r; vertical edges: right of column c
+    const hEdge = [], vEdge = [];
+    for (let r = 0; r < rows - 1; r++) { hEdge[r] = []; for (let c = 0; c < cols; c++) hEdge[r][c] = randEdge(); }
+    for (let r = 0; r < rows; r++) { vEdge[r] = []; for (let c = 0; c < cols - 1; c++) vEdge[r][c] = randEdge(); }
+
+    const R = Math.min(3, Math.max(2, window.devicePixelRatio || 1));
+    const sx = img.naturalWidth / BW, sy = img.naturalHeight / BH;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const w = cw + margin * 2, h = ch + margin * 2, m = margin;
+      const path = new Path2D();
+      path.moveTo(m, m);
+      addEdge(path, m, m, m + cw, m, r > 0 ? hEdge[r - 1][c] : null, -1);                 // top
+      addEdge(path, m + cw, m, m + cw, m + ch, c < cols - 1 ? vEdge[r][c] : null, 1);      // right
+      addEdge(path, m + cw, m + ch, m, m + ch, r < rows - 1 ? hEdge[r][c] : null, 1);      // bottom
+      addEdge(path, m, m + ch, m, m, c > 0 ? vEdge[r][c - 1] : null, -1);                 // left
+      path.closePath();
+
+      const cv = document.createElement("canvas");
+      cv.width = Math.ceil(w * R); cv.height = Math.ceil(h * R);
+      cv.style.width = w + "px"; cv.style.height = h + "px"; cv.className = "piece";
+      const p = { r, c, w, h, path, cv, R, locked: false,
+        tx: c * cw - m, ty: r * ch - m, x: 0, y: 0 };
+      p.g = { ps: [p] };
+      draw(p, sx, sy);
+      stage.appendChild(cv);
+      pieces.push(p);
+    }
+    scatter(groups(), false);
+    updateCount();
+  }
+
+  function draw(p, sx = img.naturalWidth / BW, sy = img.naturalHeight / BH) {
+    const ctx = p.cv.getContext("2d");
+    ctx.setTransform(p.R, 0, 0, p.R, 0, 0);
+    ctx.clearRect(0, 0, p.w, p.h);
+    ctx.save(); ctx.clip(p.path);
+    ctx.drawImage(img, p.tx * sx, p.ty * sy, p.w * sx, p.h * sy, 0, 0, p.w, p.h);
+    ctx.restore();
+    if (!p.locked) {
+      ctx.lineWidth = 1.6; ctx.strokeStyle = "rgba(255,255,255,.35)";
+      ctx.save(); ctx.translate(-.6, -.6); ctx.stroke(p.path); ctx.restore();
+      ctx.strokeStyle = "rgba(0,0,0,.45)"; ctx.lineWidth = 1.2; ctx.stroke(p.path);
+    }
+  }
+
+  // ---------- shuffle ----------
+  // Spread groups over a jittered grid of slots across the trays, in random order.
+  // A snapped-together group moves as one, keeping its shape.
+  function scatter(list, animate) {
+    if (!list.length) return;
+    const total = trays.reduce((s, t) => s + t.w * t.h, 0);
+    let size = Math.sqrt(total / list.length), slots;
+    for (;;) {
+      slots = [];
+      for (const t of trays) {
+        const gc = Math.max(1, Math.floor(t.w / size)), gr = Math.max(1, Math.floor(t.h / size));
+        const sw = t.w / gc, sh = t.h / gr;
+        for (let i = 0; i < gc; i++) for (let k = 0; k < gr; k++)
+          slots.push({ x: t.x + (i + .5) * sw, y: t.y + (k + .5) * sh, jx: sw * .3, jy: sh * .3 });
+      }
+      if (slots.length >= list.length) break;
+      size *= .92;
+    }
+    for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [slots[i], slots[j]] = [slots[j], slots[i]]; }
+    list.forEach((g, i) => {
+      const s = slots[i], a = g.ps[0];
+      // centre the group's bounding box on the slot
+      const minX = Math.min(...g.ps.map(q => q.tx)), maxX = Math.max(...g.ps.map(q => q.tx + q.w));
+      const minY = Math.min(...g.ps.map(q => q.ty)), maxY = Math.max(...g.ps.map(q => q.ty + q.h));
+      const ox = s.x + rnd(-s.jx, s.jx) - (minX + maxX) / 2, oy = s.y + rnd(-s.jy, s.jy) - (minY + maxY) / 2;
+      for (const q of g.ps) { q.x = ox + q.tx; q.y = oy + q.ty; q.cv.style.zIndex = ++zTop; place(q, animate); }
+    });
+  }
+  function shuffle() {
+    if (finished) return;
+    const loose = groups().filter(g => !groupOnBoard(g));
+    // random order so stacking changes too
+    for (let i = loose.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [loose[i], loose[j]] = [loose[j], loose[i]]; }
+    scatter(loose, true);
+  }
+  function place(p, animate) {
+    p.cv.classList.toggle("animate", !!animate);
+    p.cv.style.transform = `translate(${p.x}px, ${p.y}px)`;
+    if (animate) setTimeout(() => p.cv.classList.remove("animate"), 500);
+  }
+
+  // ---------- drag ----------
+  // Grab any piece to move its whole group. Drop near the matching spot on the board to lock it in,
+  // or next to a piece it really fits with to join them. Double-click / double-tap pulls a piece loose.
+  let drag = null, lastTap = null;
+  const toStage = e => { const r = stage.getBoundingClientRect(); return [(e.clientX - r.left) / scale, (e.clientY - r.top) / scale]; };
+  const tol = () => Math.min(cw, ch) * .22;
+  const pieceAt = (x, y) => pieces.slice().sort((a, b) => b.cv.style.zIndex - a.cv.style.zIndex)
+    .find(p => hit.isPointInPath(p.path, x - p.x, y - p.y));
+
+  stage.addEventListener("pointerdown", e => {
+    if (finished || drag) return;
+    const [x, y] = toStage(e), p = pieceAt(x, y);
+    if (!p) return;
+    e.preventDefault();
+    if (lastTap && lastTap.p === p && performance.now() - lastTap.t < 400) { lastTap = null; pullLoose(p); return; }
+    try { stage.setPointerCapture(e.pointerId); } catch {}
+    const g = p.g;
+    drag = { p, g, id: e.pointerId, dx: x - p.x, dy: y - p.y, sx: x, sy: y, moved: false,
+      lo: [-Math.min(...g.ps.map(q => q.tx - p.tx)) - p.w / 2, -Math.min(...g.ps.map(q => q.ty - p.ty)) - p.h / 2],
+      hi: [PW - Math.max(...g.ps.map(q => q.tx - p.tx + q.w)) + p.w / 2, PH - Math.max(...g.ps.map(q => q.ty - p.ty + q.h)) + p.h / 2] };
+    if (!p.locked) for (const q of g.ps) { q.cv.style.zIndex = ++zTop; q.cv.classList.remove("animate"); q.cv.classList.add("drag"); }
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const [x, y] = toStage(e), p = drag.p;
+    if (!drag.moved && Math.hypot(x - drag.sx, y - drag.sy) < 4) return;
+    if (p.locked) return; // pieces locked on the board stay put
+    if (!drag.moved) { drag.moved = true; if (!started) startTimer(); }
+    const ax = Math.min(Math.max(x - drag.dx, drag.lo[0]), drag.hi[0]);
+    const ay = Math.min(Math.max(y - drag.dy, drag.lo[1]), drag.hi[1]);
+    moveGroup(drag.g, ax - p.x, ay - p.y);
+  });
+  const end = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const { p, g, moved } = drag; drag = null;
+    g.ps.forEach(q => q.cv.classList.remove("drag"));
+    if (!moved) { lastTap = { p, t: performance.now() }; return; }
+    lastTap = null;
+    settle(g);
+  };
+  stage.addEventListener("pointerup", end);
+  stage.addEventListener("pointercancel", end);
+
+  function moveGroup(g, dx, dy) { for (const q of g.ps) { q.x += dx; q.y += dy; place(q, false); } }
+
+  function settle(g) {
+    // 1. the board: any piece of the group near its home spot locks the whole group in
+    for (const q of g.ps) {
+      const dx = board.x + q.tx - q.x, dy = board.y + q.ty - q.y;
+      if (Math.hypot(dx, dy) < tol()) { moveGroup(g, dx, dy); lock(g); break; }
+    }
+    // 2. neighbours: join any piece that sits next to its true partner
+    let joined = true;
+    while (joined) {
+      joined = false;
+      for (const q of g.ps) {
+        for (const n of neighbours(q)) {
+          if (n.g === g) continue;
+          const dx = (n.x - n.tx) - (q.x - q.tx), dy = (n.y - n.ty) - (q.y - q.ty);
+          if (Math.hypot(dx, dy) < tol()) {
+            if (g.ps.some(s => s.locked)) moveGroup(n.g, -dx, -dy); else moveGroup(g, dx, dy);
+            g = merge(g, n.g); joined = true; break;
+          }
+        }
+        if (joined) break;
+      }
+    }
+    if (g.ps.some(s => s.locked)) lock(g);
+    else g.ps.forEach(q => q.cv.style.zIndex = ++zTop);
+    updateCount();
+  }
+  function neighbours(q) {
+    return pieces.filter(n => Math.abs(n.r - q.r) + Math.abs(n.c - q.c) === 1);
+  }
+  function merge(a, b) {
+    const big = a.ps.length >= b.ps.length ? a : b, small = big === a ? b : a;
+    for (const q of small.ps) { q.g = big; big.ps.push(q); }
+    return big;
+  }
+  function lock(g) {
+    for (const q of g.ps) {
+      if (q.locked) continue;
+      q.x = board.x + q.tx; q.y = board.y + q.ty;
+      q.locked = true; q.cv.classList.add("locked"); q.cv.style.zIndex = 10; draw(q); place(q, false);
+    }
+  }
+  function pullLoose(p) {
+    const g = p.g;
+    if (g.ps.length === 1 && !p.locked) return;
+    if (g.ps.length > 1) { g.ps.splice(g.ps.indexOf(p), 1); p.g = { ps: [p] }; }
+    if (p.locked) { p.locked = false; p.cv.classList.remove("locked"); draw(p); }
+    // nudge it away from where it was, toward the middle of the table
+    const cx = p.x + p.w / 2, cy = p.y + p.h / 2, len = Math.hypot(PW / 2 - cx, PH / 2 - cy) || 1;
+    const push = Math.min(cw, ch) * .45;
+    p.x += (PW / 2 - cx) / len * push + push * .4; p.y += (PH / 2 - cy) / len * push + push * .4;
+    p.cv.style.zIndex = ++zTop; place(p, true);
+    updateCount();
+  }
+
+  // ---------- status ----------
+  function updateCount() {
+    const n = pieces.filter(p => p.locked).length;
+    $("placed").textContent = `${n} / ${pieces.length}`;
+    if (n === pieces.length && pieces.length) {
+      finished = true; stopTimer();
+      $("board").classList.add("done"); stage.classList.add("done");
+      $("winText").textContent = `${pieces.length} pieces in ${fmt(elapsed)}`;
+      $("win").hidden = false;
+    }
+  }
+  const fmt = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+  function showTime() { $("time").textContent = fmt(elapsed); }
+  function startTimer() { started = Date.now(); timer = setInterval(() => { elapsed = Date.now() - started; showTime(); }, 500); }
+  function stopTimer() { clearInterval(timer); timer = null; if (started) elapsed = Date.now() - started; showTime(); }
+
+  // ---------- wiring ----------
+  $("newBtn").onclick = () => pickImage();
+  $("againBtn").onclick = () => pickImage();
+  $("count").onchange = build;
+  $("shuffleBtn").onclick = shuffle;
+  $("ghostBtn").onclick = () => {
+    ghost = !ghost; $("ghostBtn").setAttribute("aria-pressed", ghost);
+    $("board").classList.toggle("ghost", ghost);
+  };
+  let rt;
+  window.addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      const mode = chooseLayout();
+      if (mode !== layout && pieces.length) {
+        applyLayout(mode);
+        const loose = groups().filter(g => !groupOnBoard(g));
+        groups().filter(g => !loose.includes(g)).forEach(g => g.ps.forEach(p => place(p, false)));
+        scatter(loose, false);
+      } else fit();
+    }, 120);
+  });
+
+  // ---------- pictures ----------
+  async function loadList() {
+    try {
+      const res = await fetch(IMAGE_FOLDER + "images.json", { cache: "no-store" });
+      const list = (await res.json()).filter(n => typeof n === "string" && n.trim());
+      if (list.length) return list;
+    } catch {}
+    return FALLBACK;
+  }
+  // Pick a random picture, not the same one twice in a row. Skips any file that won't load.
+  function pickImage(failed = new Set()) {
+    let options = imageList.filter(n => !failed.has(n));
+    if (!options.length) {
+      table.innerHTML = `<p style="padding:20px">No puzzle pictures could be loaded. Check that the files listed in ${IMAGE_FOLDER}images.json are in that folder.</p>`;
+      return;
+    }
+    if (options.length > 1) options = options.filter(n => n !== lastPick);
+    const name = options[Math.floor(Math.random() * options.length)];
+    img.onload = () => { lastPick = name; imgSrc = img.src; build(); };
+    img.onerror = () => { failed.add(name); pickImage(failed); };
+    img.src = IMAGE_FOLDER + encodeURI(name);
+  }
+  loadList().then(list => { imageList = list; pickImage(); });
+})();
+</script>

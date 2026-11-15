@@ -84,6 +84,9 @@ nav a:hover {
     margin-left: 5px;
     margin-right: 5px;
 }
+.tile a {
+    color: #66FF33; /* Set text color to green for <a> elements within .tile */
+}
 .tile p a {
     color: #66FF33; /* Set text color to green for <p> elements within .tile */
 }

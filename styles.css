@@ -23,7 +23,7 @@ body {
 }
 
 #header {
-    padding-right: 20px; /* Add padding to separate from nav */
+    padding-right: 20px; 
     color: #FFFFFF;
 }
 
@@ -50,7 +50,7 @@ nav {
     color: #66FF33;
     font-size: 20px;
     cursor: pointer;
-    transform: translate(-50%, -50%);
+    /* transform: translate(-50%, -50%); */
     z-index: 9999; /* Ensure it's above other content */
     display: none; /* Hide it by default */
 }

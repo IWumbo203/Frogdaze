@@ -2,20 +2,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap">
 <style>
-/* Layout: a toolbar over a felt puzzle table that scales to fit its frame (made to sit in an iframe) */
+/* Layout: a toolbar over a puzzle table that scales to fit its frame (made to sit in an iframe).
+   Single light look matching the host page: bright #99FF99 green, Arial, dark green accents. */
 :root {
-  --table: #173a22;
-  --table-deep: #0f2a18;
-  --ink: #eef6e8;
-  --muted: #a9c4a6;
-  --board: #0b2013;
-  --line: #3f6b45;
-  --accent: #f07a1c;   /* the frog's orange toes */
-  --eye: #d8232a;      /* the frog's red eye */
-  --font: "Figtree", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  color-scheme: dark;
+  --table: #99ff99;     /* the host page's background */
+  --table-deep: #ffffff;
+  --ink: #003300;
+  --muted: #2f6b2f;
+  --board: #2a6e2a;
+  --line: #2e8b2e;
+  --accent: #006600;
+  --font: Arial, Helvetica, sans-serif;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -39,7 +38,8 @@ button, select {
 select { padding-right: 10px; }
 button:hover, select:hover { border-color: var(--accent); }
 button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-button.primary { background: var(--accent); border-color: var(--accent); color: #241000; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+button.primary:hover { border-color: var(--ink); }
 button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
 .table { flex: 1; min-height: 0; position: relative; display: grid; place-items: center; overflow: hidden; }
@@ -47,12 +47,12 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
 .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; touch-action: none; }
 .tray {
   position: absolute; border-radius: 14px;
-  background: repeating-linear-gradient(45deg, transparent 0 10px, rgba(255,255,255,.025) 10px 20px);
-  border: 1.5px dashed rgba(169,196,166,.25);
+  background: repeating-linear-gradient(45deg, transparent 0 10px, rgba(0,102,0,.06) 10px 20px);
+  border: 2px dashed rgba(0,102,0,.35);
 }
 .board {
   position: absolute; background: var(--board); border-radius: 4px;
-  box-shadow: 0 0 0 2px var(--line), 0 12px 40px rgba(0,0,0,.45);
+  box-shadow: 0 0 0 3px var(--accent), 0 8px 24px rgba(0,60,0,.35);
 }
 .board img { width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .3s; pointer-events: none; }
 .board.ghost img { opacity: .22; }
@@ -70,7 +70,7 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
   position: absolute; inset: auto 0 18px; margin: 0 auto; width: fit-content; max-width: calc(100% - 24px);
   background: var(--table-deep); border: 2px solid var(--accent); border-radius: 16px;
   padding: 12px 16px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center;
-  box-shadow: 0 12px 40px rgba(0,0,0,.5); z-index: 99999;
+  box-shadow: 0 8px 24px rgba(0,60,0,.35); z-index: 99999;
 }
 .win[hidden] { display: none; }
 .win p { margin: 0; font-weight: 700; }
@@ -90,6 +90,7 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
     <button id="newBtn" class="primary">New puzzle</button>
     <button id="shuffleBtn" title="Spread out the pieces that are not on the board">Shuffle</button>
     <button id="ghostBtn" aria-pressed="false" title="Show a faint picture on the board">Guide</button>
+    <button id="solveBtn" title="Finish the puzzle from where you are">Solve</button>
   </div>
   <p class="tip">Pieces that fit snap together and move as one. Double-click or double-tap a piece to pull it loose.</p>
   <div class="group">
@@ -111,8 +112,9 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
 <script>
 (() => {
   // Pictures live in this folder, listed by file name in images.json inside it, e.g.
+  //   ["frog.png", "toad.jpg", "pond.webp"]
   const IMAGE_FOLDER = "images/puzzle-images/";
-  const FALLBACK = ["millie.jpg", "webmeister1.jpg", "josephine-puzzle.png"];        // used if images.json can't be read
+  const FALLBACK = ["millie.jpg", "webmeister1.jpg", "josephine-puzzle.png"];       // used if images.json can't be read
   const AREA = 240000;                  // board area in puzzle units; width and height follow the picture
   const GAP = 24;
   let BW = 600, BH = 400, imageList = [], imgSrc = "", lastPick = "";
@@ -213,6 +215,7 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
     rows = Math.max(2, Math.round(target / cols));
     cw = BW / cols; ch = BH / rows; margin = Math.min(cw, ch) * .3;
     finished = false; stopTimer(); elapsed = 0; started = 0; showTime();
+    buildId++; solving = false; helped = false; resetSolveBtn();
     $("win").hidden = true; stage.classList.remove("done");
     stage.querySelectorAll(".piece").forEach(e => e.remove());
     pieces = [];
@@ -314,7 +317,7 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
     .find(p => hit.isPointInPath(p.path, x - p.x, y - p.y));
 
   stage.addEventListener("pointerdown", e => {
-    if (finished || drag) return;
+    if (finished || drag || solving) return;
     const [x, y] = toStage(e), p = pieceAt(x, y);
     if (!p) return;
     e.preventDefault();
@@ -410,7 +413,8 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
     if (n === pieces.length && pieces.length) {
       finished = true; stopTimer();
       $("board").classList.add("done"); stage.classList.add("done");
-      $("winText").textContent = `${pieces.length} pieces in ${fmt(elapsed)}`;
+      $("winText").textContent = `${pieces.length} pieces in ${fmt(elapsed)}` + (helped ? ", finished by Solve" : "");
+      solving = false; resetSolveBtn();
       $("win").hidden = false;
     }
   }
@@ -424,6 +428,51 @@ button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
   $("againBtn").onclick = () => pickImage();
   $("count").onchange = build;
   $("shuffleBtn").onclick = shuffle;
+
+  // ---------- auto-solve ----------
+  // Keeps everything already placed, then flies each remaining piece (or snapped group) home,
+  // one after another. Asks for a second click first so a stray tap doesn't end the game.
+  let solving = false, helped = false, buildId = 0, confirmTimer = null;
+  function resetSolveBtn() {
+    clearTimeout(confirmTimer); confirmTimer = null;
+    const b = $("solveBtn"); b.textContent = "Solve"; b.classList.remove("primary"); b.disabled = false;
+  }
+  $("solveBtn").onclick = () => {
+    if (finished || solving) return;
+    const b = $("solveBtn");
+    if (!confirmTimer) {
+      b.textContent = "Click again to solve"; b.classList.add("primary");
+      confirmTimer = setTimeout(resetSolveBtn, 3000);
+      return;
+    }
+    clearTimeout(confirmTimer); confirmTimer = null;
+    b.textContent = "Solving…"; b.classList.remove("primary"); b.disabled = true;
+    autoSolve();
+  };
+  function autoSolve() {
+    const id = buildId;
+    const todo = groups().filter(g => !g.ps.some(p => p.locked));
+    if (!todo.length) return;
+    solving = true; helped = true;
+    if (!started) startTimer();
+    // bigger groups first, then the rest in a random order
+    todo.sort((a, b) => b.ps.length - a.ps.length || Math.random() - .5);
+    const step = Math.max(60, Math.min(350, 4000 / todo.length));
+    const next = () => {
+      if (id !== buildId || !todo.length) return;
+      const g = todo.shift();
+      for (const q of g.ps) { q.x = board.x + q.tx; q.y = board.y + q.ty; q.cv.style.zIndex = ++zTop; place(q, true); }
+      setTimeout(() => {
+        if (id !== buildId) return;
+        // join with whatever is already on the board, then lock in
+        let all = g;
+        for (const q of g.ps) for (const n of neighbours(q)) if (n.locked && n.g !== all) all = merge(all, n.g);
+        lock(all); updateCount();
+      }, 460);
+      setTimeout(next, step);
+    };
+    next();
+  }
   $("ghostBtn").onclick = () => {
     ghost = !ghost; $("ghostBtn").setAttribute("aria-pressed", ghost);
     $("board").classList.toggle("ghost", ghost);

@@ -1,13 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
     var navbarToggle = document.getElementById("navbar-toggle");
     var navbarLinks = document.getElementById("navbar-links");
+    if (!navbarToggle || !navbarLinks) return; // page has no menu
 
     navbarToggle.addEventListener("click", function () {
-        navbarLinks.classList.toggle("active");
+        var isOpen = navbarLinks.classList.toggle("active");
+        navbarToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     });
 });
 
 function updateHolidayContent(title, imageSrc, textColor) {
+    if (!document.getElementById('holidaySlide')) return; // page has no holiday banner
     if (title == "null") {
         document.getElementById('holidaySlide').style.display = 'none';
     } else {

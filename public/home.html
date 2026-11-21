@@ -19,14 +19,14 @@
 </head>
 
 <body>
-    <img src="images/banner.jpg" alt="banner image" style="padding-bottom: 10px;">
+    <img id="banner" src="images/banner.jpg" alt="Red-eyed tree frog banner" style="padding-bottom: 10px;">
     <div id="header-nav-container">
         <div id="header">
             <img src="images/image001.gif" alt="FROGDAZE" style="margin-top: 25px;">
             <p style="text-align: center;">HOP IN AND LOOK AROUND</p>
         </div>
         <nav>
-            <div id="navbar-toggle">&#9776;</div>
+            <button id="navbar-toggle" type="button" aria-expanded="false" aria-controls="navbar-links">&#9776; MENU</button>
             <ul id="navbar-links">
                 <a href="frogaphiles.html">FROGAPHILES</a>
                 <a href="serious_frog_stuff.html">CARING FOR YOUR FROG</a>
@@ -140,7 +140,7 @@
             <!-- Tile 1 -->
             <div class="tile">
                 <img src="images/frogmail.gif" alt="Contact Me" width="585" height="33">
-                <p><a href="mailto:tobey77B@icloud.com" style="color: #66FF33;">Contact me</a></p>
+                <p><a href="#" onclick="this.href='mailto:'+'tobey77b'+'@'+'icloud.com'" style="color: #66FF33;">Contact me</a></p>
             </div>
     
             <!-- Tile 2 -->

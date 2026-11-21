@@ -30,7 +30,7 @@ body {
 #content {
     padding: 20px;
     color: #66FF33;
-    font-family: 'Comic Sans MS';
+    font-family: 'Comic Sans MS', 'Comic Neue', sans-serif;
     text-align: center;
 }
 
@@ -57,9 +57,11 @@ nav {
     border: 2px solid #66FF33;
     border-radius: 10px;
     padding: 8px 20px;
-    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-family: 'Comic Sans MS', 'Comic Neue', sans-serif;
     font-weight: bold;
     font-size: 20px;
+    -webkit-appearance: none; /* stop Safari's default button styling */
+    appearance: none;
     cursor: pointer;
     /* transform: translate(-50%, -50%); */
     z-index: 9999; /* Ensure it's above other content */
@@ -124,6 +126,7 @@ nav a:hover {
     display: flex;
     flex-direction: row; /* Make content horizontal by default */
     justify-content: space-around; /* Spacing between the text containers */
+    align-items: center; /* center Millie's photo on phones; line text up with the photo on desktop */
 }
 
 .text-container {
@@ -195,7 +198,7 @@ nav a:hover {
         margin: 0;
         padding: 10px 0;
         border-bottom: 1px solid #333333;
-        font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+        font-family: 'Comic Sans MS', 'Comic Neue', sans-serif;
         font-weight: bold;
     }
 
@@ -209,7 +212,7 @@ nav a:hover {
     #content {
         padding: 10px;
         color: #66FF33;
-        font-family: 'Comic Sans MS';
+        font-family: 'Comic Sans MS', 'Comic Neue', sans-serif;
         text-align: center;
     }
     /* Adjustments for smaller screens */
